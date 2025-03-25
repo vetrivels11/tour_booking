@@ -930,6 +930,112 @@ public class ServiceResponseDto {
 
 
 
+SQL ---- PL/SQL
+
+curd operation: 
+
+---------------------------------------------------------GET :--------------------------------------------------------------------------------
+
+DELIMITER $$
+
+USE `tour_booking`$$
+
+DROP PROCEDURE IF EXISTS `get_produ_in_booking_data`$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `get_produ_in_booking_data`(IN p_name VARCHAR(50))
+BEGIN
+    SELECT * FROM `booking` WHERE `name`= p_name;
+END$$
+
+DELIMITER ;
+
+-----------------------------------------------------------------POST:-----------------------------------------------------------------------
+DELIMITER $$
+
+USE `tour_booking`$$
+
+DROP PROCEDURE IF EXISTS `insert_produ_in_booking`$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_produ_in_booking`(
+    p_name VARCHAR(50),
+    p_age INT,
+    p_from VARCHAR(50),
+    p_to VARCHAR(50),
+    p_price DECIMAL(10,2),
+    p_km INT
+)
+BEGIN
+    -- Insert data into the 'booking' table
+    INSERT INTO `booking`
+    (`name`, age, `from`, `to`, price, km)
+    VALUES (p_name, p_age, p_from, p_to, p_price, p_km);
+
+    -- Return success message
+    SELECT 'SUCCESS' AS Message;
+    
+END$$
+
+DELIMITER ;
+
+
+------------------------------------------------PUT:-----------------------------------------------------------------
+
+DELIMITER $$
+
+USE `tour_booking`$$
+
+DROP PROCEDURE IF EXISTS `update_produ`$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `update_produ`(
+    IN p_name VARCHAR(50),
+    IN p_age INT,
+    IN p_from VARCHAR(50),
+    IN p_to VARCHAR(50),
+    IN p_price DECIMAL(10,2),
+    IN p_km INT
+)
+BEGIN
+    -- Update the record in the 'booking' table
+    UPDATE `booking`
+    SET
+        age = p_age,
+        `from` = p_from,
+        `to` = p_to,
+        price = p_price,
+        km = p_km
+    WHERE `name` = p_name;
+
+    -- Return success message
+    SELECT 'SUCCESS' AS Message;
+    
+END$$
+
+DELIMITER ;
+
+-------------------------------------------------------------------------------DELETE :------------------------------
+
+
+DELIMITER $$
+
+USE `tour_booking`$$
+
+DROP PROCEDURE IF EXISTS `delete_produ`$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delete_produ`(
+    IN p_name VARCHAR(50)
+)
+BEGIN
+    
+    DELETE FROM `booking` WHERE `name` = p_name;
+
+    SELECT 'SUCCESS' AS Message;
+    
+END$$
+
+DELIMITER ;
+
+
+
 
 
 

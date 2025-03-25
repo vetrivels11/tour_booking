@@ -469,3 +469,468 @@ function clearInputs() {
 }
 
 
+JAVA-----------------------------------------------------------------------------
+
+controler : 
+
+package com.controler;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.dto.ServiceResponseDto;
+import com.dto.con_printVO;
+import com.service.con_service;
+@CrossOrigin(origins = {"*"})
+@RestController
+@RequestMapping(path = "/Student")
+public class con_controler {
+	@Autowired
+	private con_service dom_serv;
+	@GetMapping("/getStudent")
+	public ResponseEntity<List<con_printVO>> getStudent(@RequestParam(value = "name") String name) {
+		List<con_printVO> response = new ArrayList<con_printVO>();
+		response = dom_serv.getStudent(name);
+		return new ResponseEntity<List<con_printVO>>(response, HttpStatus.OK);
+	}
+	@PostMapping("/addStudent")
+	public ResponseEntity<ServiceResponseDto> addStudent(@RequestBody  con_printVO studentdto) {
+		ResponseEntity<ServiceResponseDto> servResponse = null;
+		ServiceResponseDto response = null;
+		try {
+			response = new ServiceResponseDto("0000", Arrays.asList(dom_serv.addStudent(studentdto)));
+			servResponse = new ResponseEntity<ServiceResponseDto>(response, HttpStatus.OK);
+		} catch (RuntimeException e) {
+			response = new ServiceResponseDto("1111", Arrays.asList(e.getMessage()));
+			servResponse = new ResponseEntity<ServiceResponseDto>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return servResponse;
+	}
+	@PutMapping("/updateStudent")
+	public ResponseEntity<ServiceResponseDto> updateStudent(@RequestBody  con_printVO studentdto) {
+		ResponseEntity<ServiceResponseDto> servResponse = null;
+		ServiceResponseDto response = null;
+		try {
+			response = new ServiceResponseDto("0000", Arrays.asList(dom_serv.updateStudent(studentdto)));
+			servResponse = new ResponseEntity<ServiceResponseDto>(response, HttpStatus.OK);
+		} catch (RuntimeException e) {
+			response = new ServiceResponseDto("1111", Arrays.asList(e.getMessage()));
+			servResponse = new ResponseEntity<ServiceResponseDto>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return servResponse;
+	}
+	@DeleteMapping("/deleteStudent")
+	public ResponseEntity<ServiceResponseDto> deleteStudent(@RequestParam(value = "name") String name) {
+		ResponseEntity<ServiceResponseDto> servResponse = null;
+		ServiceResponseDto response = null;
+		try {
+			response = new ServiceResponseDto("0000", Arrays.asList(dom_serv.deleteStudent(name)));
+			servResponse = new ResponseEntity<ServiceResponseDto>(response, HttpStatus.OK);
+		} catch (RuntimeException e) {
+			response = new ServiceResponseDto("1111", Arrays.asList(e.getMessage()));
+			servResponse = new ResponseEntity<ServiceResponseDto>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return servResponse;
+	}
+	
+}
+
+service :
+
+package com.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.dto.con_printVO;
+
+@Service
+public interface con_service  {
+	public List<con_printVO> getStudent(String name);
+	
+		public String addStudent(con_printVO studentdto) ;
+		public String updateStudent(con_printVO studentdto);
+		public String deleteStudent(String name);
+
+}
+seriveImpl---------------
+
+
+package com.seriveImpl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.DAO.con_DAO;
+import com.dto.con_printVO;
+import com.service.con_service;
+@Component
+public class con_serviceImpl implements con_service   {
+	@Autowired
+	private con_DAO student_dao;
+
+
+	@Override
+	public List<con_printVO> getStudent(String name) {
+		
+		return student_dao.getStudent(name);
+	}
+		public String addStudent (con_printVO studentdto) {
+		
+		return student_dao.addStudent(studentdto);
+	}
+		public String updateStudent(con_printVO studentdto) {
+			return student_dao.updateStudent(studentdto);
+		}
+		public String deleteStudent(String name) {
+			return student_dao.deleteStudent(name);
+		}
+
+}
+
+DAO :
+package com.DAO;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
+import com.DBconncetion.con_DBconnection;
+import com.dto.con_printVO;
+
+@Repository
+public class con_DAO {
+	List<String> id = new ArrayList<>();
+	public List<con_printVO> getStudent(String name){
+		Connection connection = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String storeProc = "";
+		List<con_printVO> al = null;
+		al = new ArrayList<con_printVO>();
+		try {
+			if (connection == null) {
+				connection = con_DBconnection.getConnection();
+			}
+			storeProc = "{call get_produ_in_booking_data(?)}";
+			ps = connection.prepareStatement(storeProc);
+			ps.setString(1, name);
+			rs = ps.executeQuery();
+			System.out.println(storeProc);
+			while (rs.next()) {
+				con_printVO dto = new con_printVO();
+				dto.setName(rs.getString(1));
+				dto.setAge(rs.getInt(2));
+				dto.setFrom(rs.getString(3));
+				dto.setTo(rs.getString(4));
+				dto.setPrice(rs.getDouble(5));
+				dto.setKm(rs.getInt(6));
+				al.add(dto);
+			}
+			System.out.println(id);
+			}
+			catch (Exception e) {
+				System.out.println("Error in  getStudent : " + e.getMessage());
+				throw new RuntimeException(e.getMessage());
+			}finally {
+				if (rs != null) {
+					try {
+						rs.close();
+					} catch (Exception e) {
+						;
+					}
+				}
+				if (ps != null) {
+					try {
+						ps.close();
+					} catch (Exception e) {
+						;
+					}
+				}
+				if (connection != null) {
+					try {
+						connection.close();
+					} catch (Exception e) {
+
+					}
+				}
+			}
+			return al;
+		}
+	public String addStudent(con_printVO studentdto) {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String sql = null, status = null;
+
+		try {
+			if (connection == null) {
+				connection = con_DBconnection.getConnection();
+			}
+			sql = "{call insert_produ_in_booking(?,?,?,?,?,?)}";
+			ps = connection.prepareStatement(sql);
+			ps.setString(1,studentdto.getName());
+			ps.setInt(2, studentdto.getAge());
+			ps.setString(3, studentdto.getFrom());
+			ps.setString(4, studentdto.getTo());
+			ps.setDouble(5, studentdto.getPrice());
+			ps.setInt(6, studentdto.getKm());
+			
+
+			/*
+			 * ps.setString(1, studentdto.getS_id()); ps.setString(2,
+			 * studentdto.getS_name()); ps.setString(3, studentdto.getS_add());
+			 */
+
+			System.out.println(ps.toString());
+
+			rs = ps.executeQuery();
+
+			ps.clearParameters();
+
+			while (rs.next()) {
+				status = rs.getString(1);
+			}
+
+		} catch (Exception e) {
+
+			System.out.println("addStudent" + e.getMessage());
+			throw new RuntimeException(e.getMessage());
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e) {
+					;
+				}
+				rs = null;
+			}
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (Exception e) {
+					;
+				}
+				ps = null;
+			}
+			if (connection != null) {
+				try {
+					connection.close();
+				} catch (Exception e) {
+					;
+				}
+				connection = null;
+			}
+		}
+		return status;
+
+	}
+	public String updateStudent(con_printVO studentdto) {
+//		
+	Connection connection = null;
+	PreparedStatement ps = null;
+	ResultSet rs = null;
+	String storeProc = null, status = null;
+	try {
+		if (connection == null) {
+			connection = con_DBconnection.getConnection();
+		}
+		storeProc = "{call update_produ(?,?,?,?,?,?)}";
+		ps = connection.prepareStatement(storeProc);
+		ps.setString(1, studentdto.getName());
+		ps.setInt(2, studentdto.getAge());
+		ps.setString(3, studentdto.getFrom());
+		ps.setString(4, studentdto.getTo());
+		ps.setDouble(5, studentdto.getPrice());
+		ps.setInt(6, studentdto.getKm());
+		
+		
+		/*
+		 * ps.setString(1, studentdto.getS_id()); ps.setString(2,
+		 * studentdto.getS_add());
+		 */
+		
+		rs = ps.executeQuery();
+
+		ps.clearParameters();
+
+		while (rs.next()) {
+			status = rs.getString(1);
+		}
+
+	} catch (Exception e) {
+
+		System.out.println("updateInvoice" + e.getMessage());
+		throw new RuntimeException(e.getMessage());
+	} finally {
+		if (rs != null) {
+			try {
+				rs.close();
+			} catch (Exception e) {
+				;
+			}
+			rs = null;
+		}
+		if (ps != null) {
+			try {
+				ps.close();
+			} catch (Exception e) {
+				;
+			}
+			ps = null;
+		}
+		if (connection != null) {
+			try {
+				connection.close();
+			} catch (Exception e) {
+				;
+			}
+			connection = null;
+		}
+	}
+	return status;
+
+}
+	public String deleteStudent(String name) {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String storeProc = null, status = null;
+
+		try {
+			if (connection == null) {
+				connection = con_DBconnection.getConnection();
+			}
+			storeProc = "{call delete_produ(?)}";
+			ps = connection.prepareStatement(storeProc);
+			ps.setString(1, name);
+			System.out.println(ps.toString());
+
+			rs = ps.executeQuery();
+
+			ps.clearParameters();
+			 if (rs.next()) {
+	                status = rs.getString(1);
+	            } else {
+	                status = "FAILURE";
+	            }
+
+		} catch (Exception e) {
+
+			System.out.println("delectStudent" + e.getMessage());
+			throw new RuntimeException(e.getMessage());
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e) {
+					;
+				}
+				rs = null;
+			}
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (Exception e) {
+					;
+				}
+				ps = null;
+			}
+			if (connection != null) {
+				try {
+					connection.close();
+				} catch (Exception e) {
+					;
+				}
+				connection = null;
+			}
+		}
+		return status;
+
+	}
+
+
+}
+
+DB-CONNCETION:
+
+package com.DBconncetion;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class con_DBconnection {
+	public static Connection getConnection() 
+    {
+        String url = "jdbc:mysql://localhost:3306/tour_booking";
+        String user = "root";
+        String password ="root";
+
+        Connection connection = null;
+
+        try {
+            
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+           connection = DriverManager.getConnection(url, user, password);
+
+           
+                System.out.println("Connected to the database");
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } 
+		return connection;
+    }
+
+}
+
+ServiceResponseDto :
+package com.dto;
+
+import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+public class ServiceResponseDto {
+	public ServiceResponseDto(String message, List<String> description) {
+		super();
+		this.message = message;
+		this.description = description;
+	}
+
+
+
+	@JsonProperty("messagecode")
+	private String message;
+	
+	@JsonProperty("message")
+	private List<String> description;
+
+}
+
+
+
+
+
+
+
